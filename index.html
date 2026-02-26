@@ -163,7 +163,15 @@ function rollDiceAnimation(){
 
 // 掷骰子逻辑
 async function rollDice(){
-  if(moving) return;
+  if(moving) return; /* ✅ 防卡死保险丝：3秒后自动解锁 */
+  clearTimeout(safetyTimer);
+  safetyTimer = setTimeout(()=>{ moving = false; }, 3000);
+
+  const roll = await rollDiceAnimation();
+  diceEl.textContent='🎲 '+roll;
+  await movePlayer(currentPlayer, roll);
+  ...
+}
   const roll = await rollDiceAnimation();
   diceEl.textContent='🎲 '+roll;
   await movePlayer(currentPlayer, roll);
