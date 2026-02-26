@@ -24,8 +24,6 @@ h1 {
   flex-wrap:wrap;
   justify-content:center;
 }
-
-/* 棋盘样式 */
 #board {
   display:grid;
   grid-template-columns:repeat(10,40px);
@@ -59,8 +57,6 @@ h1 {
 }
 .player1 { background-color:#ff69b4; }
 .player2 { background-color:#87cefa; }
-
-/* 右侧列表 + 滚动框 */
 #rightPanel {
   display:flex;
   flex-direction:column;
@@ -86,8 +82,6 @@ h1 {
   background:#ffb6c1;
   border-radius:3px;
 }
-
-/* 3D骰子样式 */
 #diceArea { 
   width:50px; 
   height:50px; 
@@ -105,7 +99,6 @@ h1 {
 #dice:active { 
   transform: translateY(5px) scale(0.95); 
 }
-
 .face { 
   position:absolute; 
   width:50px; 
@@ -119,33 +112,27 @@ h1 {
   align-content:space-around;
   box-shadow:1px 1px 5px rgba(0,0,0,0.3); 
 }
-
 .dot { 
   width:8px; 
   height:8px; 
   background:#ff1493; 
   border-radius:50%; 
 }
-
-/* 六面定位 */
 .face1 { transform:rotateY(0deg) translateZ(25px); }
 .face2 { transform:rotateY(180deg) translateZ(25px); }
 .face3 { transform:rotateX(90deg) translateZ(25px); }
 .face4 { transform:rotateX(-90deg) translateZ(25px); }
 .face5 { transform:rotateY(90deg) translateZ(25px); }
 .face6 { transform:rotateY(-90deg) translateZ(25px); }
-
 #diceNumber {
   text-align:center;
   margin-top:5px;
   font-size:18px;
   font-weight:bold;
 }
-
 #playerNames { margin-bottom:10px; text-align:center; }
 input { padding:4px 6px; margin:0 5px; border-radius:4px; border:1px solid #ccc; width:80px; }
 #status { margin-top:5px; font-size:14px; color:#333; }
-
 button {
   padding:8px 16px;
   margin:5px 0;
@@ -191,6 +178,7 @@ button {
 </div>
 
 <script>
+// 初始化
 const boardSize = 100;
 const board = document.getElementById('board');
 const contentList = document.getElementById('contentList');
@@ -217,7 +205,7 @@ const specialCells = {
   85:{type:'kiss', text:'亲亲+2 💏 / ប៉ះ +2 💏', move:2}
 };
 
-// 棋盘内容
+// 棋盘内容（这里略去重复动作，可直接用你之前的100条）
 let cellContents = [
 "脱掉两件衣服🌸 / ដោះខោអាវពីរ💖",
 "亲对方手 ✋ / ថើបដៃគូរបស់អ្នក ✋",
@@ -314,7 +302,9 @@ let cellContents = [
 "手指相扣 30秒 🤝 / ចាប់ម្រាមដៃ ៣០ វិនាទី 🤝",
 "自由选择动作30秒 🕒 / ជ្រើសរើសសកម្មភាពរយៈពេល ៣០ វិនាទី 🕒"
 ];
-while(cellContents.length<boardSize) cellContents.push("等待动作 / រង់ចាំសកម្មភាព");
+for(let i=0;i<boardSize;i++){
+  cellContents.push("等待动作 / រង់ចាំសកម្មភាព "+(i+1));
+}
 
 // 创建棋盘和内容列表
 for(let i=0;i<boardSize;i++){
@@ -330,7 +320,7 @@ for(let i=0;i<boardSize;i++){
   contentList.appendChild(contentDiv);
 }
 
-// 更新棋盘
+// 更新棋盘显示
 function updateBoard(){
   for(let i=0;i<boardSize;i++){
     const contentDiv = document.getElementById('content-'+i);
@@ -357,37 +347,48 @@ function updateBoard(){
   }
 }
 
-// 棋子移动动画
+// 棋子移动动画（循环版）
 async function movePlayer(playerIndex, steps){
   moving=true;
   for(let s=0;s<steps;s++){
-    playerPos[playerIndex]+=1;
-    if(playerPos[playerIndex]>=boardSize) playerPos[playerIndex]=boardSize-1;
+    playerPos[playerIndex]++;
+    if(playerPos[playerIndex]>=boardSize){
+      playerPos[playerIndex]=boardSize-1;
+      updateBoard();
+      break;
+    }
     updateBoard();
-    await new Promise(r=>setTimeout(r,300));
+    await new Promise(r=>setTimeout(r,200));
   }
-  if(specialCells[playerPos[playerIndex]]){
+
+  // 特殊格子处理（循环代替递归）
+  let loopSafety=0;
+  while(specialCells[playerPos[playerIndex]] && loopSafety<10){
     const move = specialCells[playerPos[playerIndex]].move;
     if(move!==0){
       status.textContent = specialCells[playerPos[playerIndex]].text;
       await new Promise(r=>setTimeout(r,500));
-      await movePlayer(playerIndex, move);
-    }
+      for(let s=0;s<Math.abs(move);s++){
+        playerPos[playerIndex] += move>0 ? 1 : -1;
+        if(playerPos[playerIndex]<0) playerPos[playerIndex]=0;
+        if(playerPos[playerIndex]>=boardSize) playerPos[playerIndex]=boardSize-1;
+        updateBoard();
+        await new Promise(r=>setTimeout(r,200));
+      }
+    } else break;
+    loopSafety++;
   }
   moving=false;
 }
 
-// 3D骰子 + 弹跳动画
+// 3D骰子动画
 function rollDiceAnimation(){
   return new Promise(resolve=>{
     const result = Math.floor(Math.random()*6)+1;
     let duration=2000, start=null;
     let randomX=Math.random()*360, randomY=Math.random()*360;
 
-    const finalAnglesMap={
-      1:[0,0],2:[0,180],3:[-90,0],
-      4:[90,0],5:[0,-90],6:[0,90]
-    };
+    const finalAnglesMap={1:[0,0],2:[0,180],3:[-90,0],4:[90,0],5:[0,-90],6:[0,90]};
 
     function animate(timestamp){
       if(!start) start=timestamp;
@@ -415,16 +416,17 @@ async function rollDice(){
   if(moving) return;
   moving=true;
   clearTimeout(safetyTimer);
-  safetyTimer=setTimeout(()=>{moving=false;},3000);
+  safetyTimer=setTimeout(()=>{moving=false;},5000);
 
   const roll=await rollDiceAnimation();
   await movePlayer(currentPlayer,roll);
 
-  if(playerPos[currentPlayer]>=boardSize){
+  if(playerPos[currentPlayer]>=boardSize-1){
     status.textContent = playerNames[currentPlayer]+'获胜！💖 / '+playerNames[currentPlayer]+' ឈ្នះ! 💖';
     playerPos=[0,0];
     updateBoard();
     moving=false;
+    rollBtn.disabled=true;
     return;
   }
 
