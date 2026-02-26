@@ -69,7 +69,7 @@ const specialCells = {
   85:{type:'kiss', text:'亲亲+2 💏 / ប៉ះ +2 💏', move:2}
 };
 
-// 浪漫互动模板（你的内容）
+// 100格内容（中文 + 高棉语）
 let cellContents = [
 "脱掉两件衣服🌸 / ដោះខោអាវពីរ💖",
 "亲对方手 ✋ / ថើបដៃគូរបស់អ្នក ✋",
@@ -145,8 +145,8 @@ let cellContents = [
 "再来一次 ✨ / ម្តងទៀត ✨",
 "回家-1 🏠 / ត្រឡប់-1 🏠",
 "亲亲+2 💏 / ប៉ះ +2 💏",
-"自由选择动作30秒 🕒 / ជ្រើសរើសសកម្មភាពរយៈពេល ៣០ វិនាទី 🕒",
-];  
+"自由选择动作30秒 🕒 / ជ្រើសរើសសកម្មភាពរយៈពេល ៣០ វិនាទី 🕒"
+];
 
 // 创建棋盘和内容列表
 for(let i=0;i<boardSize;i++){
@@ -176,9 +176,13 @@ function updateBoard(){
 
   for(let i=0;i<boardSize;i++){
     const cell = document.getElementById('cell-'+i);
+    // 清空旧棋子，只保留数字
     cell.innerHTML = i+1;
+    const hearts = cell.querySelectorAll('.heart');
+    hearts.forEach(h=>h.remove());
   }
-  // 棋子
+
+  // 添加棋子
   if(playerPos[0]<boardSize){
     const p1 = document.createElement('div');
     p1.className='heart player1';
@@ -206,9 +210,9 @@ async function movePlayer(playerIndex, steps){
   if(specialCells[playerPos[playerIndex]]){
     const move = specialCells[playerPos[playerIndex]].move;
     if(move!==0){
-      await movePlayer(playerIndex, move);
-      // ✅ 用状态显示代替 alert
       status.textContent = specialCells[playerPos[playerIndex]].text;
+      await new Promise(r=>setTimeout(r,500)); // 显示半秒
+      await movePlayer(playerIndex, move);
     }
   }
   moving=false;
@@ -218,8 +222,9 @@ async function movePlayer(playerIndex, steps){
 function rollDiceAnimation(){
   return new Promise(resolve=>{
     let count=0;
+    let r = 1;
     const interval = setInterval(()=>{
-      const r = Math.floor(Math.random()*6)+1;
+      r = Math.floor(Math.random()*6)+1;
       diceEl.textContent = '🎲 '+r;
       diceEl.style.transform = 'rotate('+Math.random()*360+'deg) scale(1.2)';
       count++;
@@ -246,6 +251,9 @@ async function rollDice(){
     playerPos[currentPlayer]=boardSize-1;
     status.textContent = playerNames[currentPlayer]+'获胜！💖 / '+playerNames[currentPlayer]+' ឈ្នះ! 💖';
     playerPos=[0,0];
+    updateBoard();
+    moving=false;
+    return;
   }
 
   currentPlayer=1-currentPlayer;
