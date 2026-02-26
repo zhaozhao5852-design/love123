@@ -5,21 +5,157 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>情侣飞行棋 💖🧩</title>
 <style>
-body { font-family: sans-serif; margin:0; padding:20px; background:#fff0f5; display:flex; flex-direction:column; align-items:center;}
-h1 { color:#ff69b4; text-align:center;}
-#gameContainer { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
-#board { display:grid; grid-template-columns:repeat(10,40px); grid-gap:2px; }
-.cell { width:40px; height:40px; border:1px solid #ccc; display:flex; justify-content:center; align-items:center; position:relative; font-size:12px; border-radius:4px; background:#ffe6f0; }
-.heart { width:30px; height:30px; border-radius:50%; display:flex; justify-content:center; align-items:center; color:white; font-weight:bold; position:absolute; top:5px; left:5px; transition: transform 0.3s ease; }
+body {
+  font-family: sans-serif;
+  margin:0;
+  padding:20px;
+  background:#fff0f5;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+h1 {
+  color:#ff69b4;
+  text-align:center;
+}
+#gameContainer {
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+/* 棋盘样式 */
+#board {
+  display:grid;
+  grid-template-columns:repeat(10,40px);
+  grid-gap:2px;
+}
+.cell {
+  width:40px;
+  height:40px;
+  border:1px solid #ccc;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  position:relative;
+  font-size:12px;
+  border-radius:4px;
+  background:#ffe6f0;
+}
+.heart {
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  font-weight:bold;
+  position:absolute;
+  top:5px;
+  left:5px;
+  transition: transform 0.3s ease;
+}
 .player1 { background-color:#ff69b4; }
 .player2 { background-color:#87cefa; }
-#contentList { max-height:420px; overflow-y:auto; width:220px; background:white; border-radius:5px; padding:5px; box-shadow:1px 1px 5px rgba(0,0,0,0.1); }
-#contentList div { padding:2px 5px; font-size:12px; color:#333; display:none; }
-#contentList div.active { display:block; background:#ffb6c1; border-radius:3px; }
-button { padding:8px 16px; margin:5px; border:none; border-radius:5px; background:#ff69b4; color:white; cursor:pointer; }
-#dice { font-size:30px; margin:10px; font-weight:bold; transition: transform 0.2s ease; display:inline-block; }
+
+/* 右侧列表 + 滚动框 */
+#rightPanel {
+  display:flex;
+  flex-direction:column;
+  width:240px;
+}
+#contentList {
+  flex:1;
+  overflow-y:auto;
+  background:white;
+  border-radius:5px;
+  padding:5px;
+  box-shadow:1px 1px 5px rgba(0,0,0,0.1);
+  max-height:420px;
+}
+#contentList div {
+  padding:2px 5px;
+  font-size:12px;
+  color:#333;
+  display:none;
+}
+#contentList div.active {
+  display:block;
+  background:#ffb6c1;
+  border-radius:3px;
+}
+
+/* 3D骰子样式 */
+#diceArea { 
+  width:50px; 
+  height:50px; 
+  margin:5px auto; 
+  perspective:600px; 
+}
+#dice { 
+  width:50px; 
+  height:50px; 
+  position:relative; 
+  transform-style:preserve-3d; 
+  transition: transform 0.2s ease; 
+  cursor:pointer;
+}
+#dice:active { 
+  transform: translateY(5px) scale(0.95); 
+}
+
+.face { 
+  position:absolute; 
+  width:50px; 
+  height:50px; 
+  background:#fff; 
+  border:2px solid #ff1493; 
+  border-radius:6px;
+  display:flex; 
+  flex-wrap:wrap; 
+  justify-content:space-around; 
+  align-content:space-around;
+  box-shadow:1px 1px 5px rgba(0,0,0,0.3); 
+}
+
+.dot { 
+  width:8px; 
+  height:8px; 
+  background:#ff1493; 
+  border-radius:50%; 
+}
+
+/* 六面定位 */
+.face1 { transform:rotateY(0deg) translateZ(25px); }
+.face2 { transform:rotateY(180deg) translateZ(25px); }
+.face3 { transform:rotateX(90deg) translateZ(25px); }
+.face4 { transform:rotateX(-90deg) translateZ(25px); }
+.face5 { transform:rotateY(90deg) translateZ(25px); }
+.face6 { transform:rotateY(-90deg) translateZ(25px); }
+
+#diceNumber {
+  text-align:center;
+  margin-top:5px;
+  font-size:18px;
+  font-weight:bold;
+}
+
 #playerNames { margin-bottom:10px; text-align:center; }
-input { padding:4px 6px; margin:0 5px; border-radius:4px; border:1px solid #ccc; }
+input { padding:4px 6px; margin:0 5px; border-radius:4px; border:1px solid #ccc; width:80px; }
+#status { margin-top:5px; font-size:14px; color:#333; }
+
+button {
+  padding:8px 16px;
+  margin:5px 0;
+  border:none;
+  border-radius:5px;
+  background:#ff69b4;
+  color:white;
+  cursor:pointer;
+  width:100%;
+}
 </style>
 </head>
 <body>
@@ -34,13 +170,24 @@ input { padding:4px 6px; margin:0 5px; border-radius:4px; border:1px solid #ccc;
 
 <div id="gameContainer">
   <div id="board"></div>
-  <div id="contentList"></div>
-</div>
-
-<div>
-<button id="rollBtn" disabled>掷骰子 🎲 / ដាក់គ្រាប់ចាញ់ 🎲</button>
-<div id="dice">🎲</div>
-<div id="status"></div>
+  <div id="rightPanel">
+    <div id="contentList"></div>
+    <div id="diceContainer">
+      <button id="rollBtn" disabled>掷骰子 🎲 / ដាក់គ្រាប់ចាញ់ 🎲</button>
+      <div id="diceArea">
+        <div id="dice">
+          <div class="face face1"><div class="dot"></div></div>
+          <div class="face face2"><div class="dot"></div><div class="dot"></div></div>
+          <div class="face face3"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          <div class="face face4"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          <div class="face face5"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          <div class="face face6"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        </div>
+      </div>
+      <div id="diceNumber">点数: 🎲</div>
+      <div id="status"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -48,7 +195,8 @@ const boardSize = 100;
 const board = document.getElementById('board');
 const contentList = document.getElementById('contentList');
 const status = document.getElementById('status');
-const diceEl = document.getElementById('dice');
+const dice = document.getElementById('dice');
+const diceNumberEl = document.getElementById('diceNumber');
 const rollBtn = document.getElementById('rollBtn');
 const startBtn = document.getElementById('startBtn');
 
@@ -56,7 +204,7 @@ let playerPos = [0,0];
 let currentPlayer = 0;
 let playerNames = ["玩家1","玩家2"];
 let moving = false;
-let safetyTimer = null; // 防卡死补丁
+let safetyTimer = null;
 
 // 特殊格子
 const specialCells = {
@@ -69,7 +217,7 @@ const specialCells = {
   85:{type:'kiss', text:'亲亲+2 💏 / ប៉ះ +2 💏', move:2}
 };
 
-// 100格内容（中文 + 高棉语）
+// 棋盘内容
 let cellContents = [
 "脱掉两件衣服🌸 / ដោះខោអាវពីរ💖",
 "亲对方手 ✋ / ថើបដៃគូរបស់អ្នក ✋",
@@ -111,9 +259,9 @@ let cellContents = [
 "女生在上面保持10分钟的性爱 🌇 / ស្ត្រីនៅលើ ធ្វើសកម្មភាពសេចក្តីស្នេហ៍ ១០ នាទី 🌇",
 "被对方控制1分钟 🍽️ / ត្រូវអោយម្ចាស់ផ្ទាល់គ្រប់គ្រងរយៈពេល ១ នាទី 🍽️",
 "亲亲+2 💏 / ប៉ះ +2 💏",
-"在浴室里面做爱 🎬 / ជួបគ្នាក្នុងបន្ទប់ទឹក 🎬",
+"在浴室里面做爱 🎬 / ជួបគ្នានៅក្នុងបន្ទប់ទឹក 🎬",
 "含冰块亲吻对方敏感部位 🚴 / បារគ្រឿងកកស្រមុំត្រចៀកផ្នែកសំខាន់ 🚴",
-"穿对方的衣服 / ស្លៀកអាវរបស់មនុស្សដទ",
+"穿对方的衣服 / ស្លៀកអាវរបស់មនុស្សដទៃ",
 "女生穿上性感的衣服 / ស្ត្រីស្លៀកសំលៀកបំពាក់ដែលទាក់ទាញ",
 "舔对方耳朵30秒 / លាបក្រអូបកំណាត់ត្រចៀករបស់ម្ខាងទៀតរយៈពេល ៣០ វិនាទី",
 "给对方化妆 / ជួយអ្នកដទៃធ្វើម៉េកអាប់",
@@ -163,53 +311,46 @@ let cellContents = [
 "互相击掌5次 ✋ / ចាប់ដៃគ្នា ៥ ដង ✋",
 "给对方送小心意 🎁 / ផ្តល់អំណោយតូច 💝",
 "一起跳舞20秒 💃 / រាំជាមួយគ្នា ២០ វិនាទី 💃",
-"手指相扣 30秒 🤝 / ចាប់ម្រាមដៃ ៣០ វិនាទី 🤝"
+"手指相扣 30秒 🤝 / ចាប់ម្រាមដៃ ៣០ វិនាទី 🤝",
 "自由选择动作30秒 🕒 / ជ្រើសរើសសកម្មភាពរយៈពេល ៣០ វិនាទី 🕒"
 ];
+while(cellContents.length<boardSize) cellContents.push("等待动作 / រង់ចាំសកម្មភាព");
 
 // 创建棋盘和内容列表
 for(let i=0;i<boardSize;i++){
-  const cell = document.createElement('div');
+  const cell=document.createElement('div');
   cell.className='cell';
   cell.id='cell-'+i;
   cell.textContent=i+1;
   board.appendChild(cell);
 
-  const contentDiv = document.createElement('div');
+  const contentDiv=document.createElement('div');
   contentDiv.id='content-'+i;
   contentDiv.textContent = cellContents[i];
   contentList.appendChild(contentDiv);
 }
 
-// 更新棋盘显示
+// 更新棋盘
 function updateBoard(){
   for(let i=0;i<boardSize;i++){
     const contentDiv = document.getElementById('content-'+i);
     if(i===playerPos[currentPlayer]){
       contentDiv.classList.add('active');
       contentDiv.scrollIntoView({behavior:'smooth', block:'center'});
-    } else {
-      contentDiv.classList.remove('active');
-    }
-  }
+    } else contentDiv.classList.remove('active');
 
-  for(let i=0;i<boardSize;i++){
     const cell = document.getElementById('cell-'+i);
-    // 清空旧棋子，只保留数字
     cell.innerHTML = i+1;
-    const hearts = cell.querySelectorAll('.heart');
-    hearts.forEach(h=>h.remove());
+    cell.querySelectorAll('.heart').forEach(h=>h.remove());
   }
-
-  // 添加棋子
   if(playerPos[0]<boardSize){
-    const p1 = document.createElement('div');
+    const p1=document.createElement('div');
     p1.className='heart player1';
     p1.textContent='💖';
     document.getElementById('cell-'+playerPos[0]).appendChild(p1);
   }
   if(playerPos[1]<boardSize){
-    const p2 = document.createElement('div');
+    const p2=document.createElement('div');
     p2.className='heart player2';
     p2.textContent='💙';
     document.getElementById('cell-'+playerPos[1]).appendChild(p2);
@@ -220,54 +361,66 @@ function updateBoard(){
 async function movePlayer(playerIndex, steps){
   moving=true;
   for(let s=0;s<steps;s++){
-    playerPos[playerIndex] += 1;
+    playerPos[playerIndex]+=1;
     if(playerPos[playerIndex]>=boardSize) playerPos[playerIndex]=boardSize-1;
     updateBoard();
     await new Promise(r=>setTimeout(r,300));
   }
-  // 检查特殊格
   if(specialCells[playerPos[playerIndex]]){
     const move = specialCells[playerPos[playerIndex]].move;
     if(move!==0){
       status.textContent = specialCells[playerPos[playerIndex]].text;
-      await new Promise(r=>setTimeout(r,500)); // 显示半秒
+      await new Promise(r=>setTimeout(r,500));
       await movePlayer(playerIndex, move);
     }
   }
   moving=false;
 }
 
-// 骰子转动动画
+// 3D骰子 + 弹跳动画
 function rollDiceAnimation(){
   return new Promise(resolve=>{
-    let count=0;
-    let r = 1;
-    const interval = setInterval(()=>{
-      r = Math.floor(Math.random()*6)+1;
-      diceEl.textContent = '🎲 '+r;
-      diceEl.style.transform = 'rotate('+Math.random()*360+'deg) scale(1.2)';
-      count++;
-      if(count>=10){
-        clearInterval(interval);
-        resolve(r);
+    const result = Math.floor(Math.random()*6)+1;
+    let duration=2000, start=null;
+    let randomX=Math.random()*360, randomY=Math.random()*360;
+
+    const finalAnglesMap={
+      1:[0,0],2:[0,180],3:[-90,0],
+      4:[90,0],5:[0,-90],6:[0,90]
+    };
+
+    function animate(timestamp){
+      if(!start) start=timestamp;
+      let elapsed=timestamp-start;
+      let progress=Math.min(elapsed/duration,1);
+      let ease=progress<0.5 ? 4*progress*progress*progress : 1-Math.pow(-2*progress+2,3)/2;
+      let bounce=Math.sin(progress*Math.PI)*8;
+      let rotX=ease*1440 + randomX;
+      let rotY=ease*1440 + randomY;
+      dice.style.transform=`translateY(${-bounce}px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+      if(progress<1) requestAnimationFrame(animate);
+      else{
+        const finalAngles=finalAnglesMap[result];
+        dice.style.transform=`translateY(0px) rotateX(${finalAngles[0]}deg) rotateY(${finalAngles[1]}deg)`;
+        diceNumberEl.textContent='点数: '+result+' / ចំនួន: '+result;
+        resolve(result);
       }
-    },50);
+    }
+    requestAnimationFrame(animate);
   });
 }
 
 // 掷骰子逻辑
 async function rollDice(){
-  if(moving) return; 
-  moving = true;
+  if(moving) return;
+  moving=true;
   clearTimeout(safetyTimer);
-  safetyTimer = setTimeout(()=>{ moving = false; }, 3000); // 防卡死补丁
+  safetyTimer=setTimeout(()=>{moving=false;},3000);
 
-  const roll = await rollDiceAnimation();
-  diceEl.textContent='🎲 '+roll;
-  await movePlayer(currentPlayer, roll);
+  const roll=await rollDiceAnimation();
+  await movePlayer(currentPlayer,roll);
 
   if(playerPos[currentPlayer]>=boardSize){
-    playerPos[currentPlayer]=boardSize-1;
     status.textContent = playerNames[currentPlayer]+'获胜！💖 / '+playerNames[currentPlayer]+' ឈ្នះ! 💖';
     playerPos=[0,0];
     updateBoard();
@@ -293,10 +446,9 @@ startBtn.addEventListener('click', ()=>{
   status.textContent = playerNames[currentPlayer]+'轮到 / អ្នកលេង'+(currentPlayer+1);
   updateBoard();
 });
-
 rollBtn.addEventListener('click', rollDice);
+
 updateBoard();
 </script>
-
 </body>
 </html>
